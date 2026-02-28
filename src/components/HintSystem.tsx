@@ -36,23 +36,36 @@ export default function HintSystem({ hints }: HintSystemProps) {
 
             <div className="w-full space-y-3">
                 <AnimatePresence>
-                    {hints.slice(0, visibleHints).map((hint, index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: -10, height: 0 }}
-                            animate={{ opacity: 1, y: 0, height: 'auto' }}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex items-start gap-4 shadow-sm"
-                        >
-                            <div className="flex-shrink-0 mt-1">
-                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-400 text-white text-xs font-bold shadow-inner">
-                                    {index + 1}
-                                </span>
-                            </div>
-                            <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-                                {hint}
-                            </p>
-                        </motion.div>
-                    ))}
+                    {hints.slice(0, visibleHints).map((hint, index) => {
+                        const parts = hint.split(/(\w+\^\w+)/g);
+                        return (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: -10, height: 0 }}
+                                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex items-start gap-4 shadow-sm"
+                            >
+                                <div className="flex-shrink-0 mt-1">
+                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-400 text-white text-xs font-bold shadow-inner">
+                                        {index + 1}
+                                    </span>
+                                </div>
+                                <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                                    {parts.map((part, pIndex) => {
+                                        if (part.includes('^')) {
+                                            const [base, exp] = part.split('^');
+                                            return (
+                                                <span key={pIndex}>
+                                                    {base}<sup>{exp}</sup>
+                                                </span>
+                                            );
+                                        }
+                                        return <span key={pIndex}>{part}</span>;
+                                    })}
+                                </p>
+                            </motion.div>
+                        );
+                    })}
                 </AnimatePresence>
             </div>
         </div>

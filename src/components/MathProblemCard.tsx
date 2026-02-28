@@ -7,6 +7,22 @@ interface MathProblemCardProps {
 }
 
 export default function MathProblemCard({ question, children }: MathProblemCardProps) {
+    const renderQuestion = (q: string) => {
+        // x^y 형태를 찾아 윗첨자(sup) 렌더링하도록 텍스트 파싱
+        const parts = q.split(/(\w+\^\w+)/g);
+        return parts.map((part, index) => {
+            if (part.includes('^')) {
+                const [base, exp] = part.split('^');
+                return (
+                    <span key={index}>
+                        {base}<sup>{exp}</sup>
+                    </span>
+                );
+            }
+            return <span key={index}>{part}</span>;
+        });
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -23,7 +39,7 @@ export default function MathProblemCard({ question, children }: MathProblemCardP
                 </div>
 
                 <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-md z-10 break-keep">
-                    {question}
+                    {renderQuestion(question)}
                 </h2>
             </div>
 

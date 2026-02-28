@@ -10,104 +10,139 @@ const getRandomInt = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-// 정수와 유리수의 사칙연산 문제 생성
-const generateArithmeticProblem = (index: number): MathProblem => {
-  const operators = ['+', '-', '*', '/'];
-  const operator = operators[Math.floor(Math.random() * operators.length)];
+// 지수법칙 문제 생성
+const generateExponentProblem = (index: number): MathProblem => {
+  const baseOptions = [2, 3, 5];
+  const base = baseOptions[Math.floor(Math.random() * baseOptions.length)];
+  const type = Math.floor(Math.random() * 3); // 0: 곱셈, 1: 나눗셈, 2: 거듭제곱
 
-  let a = getRandomInt(-15, 15);
-  let b = getRandomInt(-15, 15);
-  let answer = 0;
+  let m = getRandomInt(2, 6);
+  let n = getRandomInt(2, 6);
   let question = '';
+  let answer = 0;
   let hints: string[] = [];
 
-  // 0으로 나누기 방지 및 단순화를 위한 처리
-  if (operator === '/') {
-    while (b === 0) b = getRandomInt(-15, 15);
-    // a가 b로 나누어 떨어지도록 조정
-    a = b * getRandomInt(-10, 10);
-  }
-
-  const bStr = b < 0 ? `(${b})` : `${b}`;
-  const aStr = a < 0 ? `(${a})` : `${a}`;
-
-  switch (operator) {
-    case '+':
-      answer = a + b;
-      question = `${aStr} + ${bStr} = ?`;
-      hints = [
-        '부호가 같은 두 수의 덧셈은 절댓값의 합에 공통 부호를 붙입니다.',
-        '부호가 다른 두 수의 덧셈은 절댓값의 차에 절댓값이 큰 수의 부호를 붙입니다.',
-        `계산 과정을 살펴보면: ${a} 와 ${b} 를 더하는 것입니다. 부호를 잘 확인해 보세요.`,
-      ];
-      break;
-    case '-':
-      answer = a - b;
-      question = `${aStr} - ${bStr} = ?`;
-      hints = [
-        '뺄셈은 빼는 수의 부호를 바꾸어 덧셈으로 고쳐서 계산합니다.',
-        `식 세우기: ${aStr} + (${-b}) 로 바꿀 수 있습니다.`,
-        `이제 덧셈 문제로 생각해서 풀어보세요.`,
-      ];
-      break;
-    case '*':
-      answer = a * b;
-      question = `${aStr} × ${bStr} = ?`;
-      hints = [
-        '두 수의 부호가 같으면 \'+\', 다르면 \'-\' 입니다.',
-        `절댓값의 곱인 (${Math.abs(a)} × ${Math.abs(b)}) 에 알맞은 부호를 붙여보세요.`,
-        `결과의 부호는 ${a * b > 0 ? '양수' : a * b < 0 ? '음수' : '0'}가 됩니다.`,
-      ];
-      break;
-    case '/':
-      answer = a / b;
-      question = `${aStr} ÷ ${bStr} = ?`;
-      hints = [
-        '나눗셈도 곱셈과 마찬가지로 두 수의 부호가 같으면 \'+\', 다르면 \'-\' 입니다.',
-        `절댓값의 나눗셈인 (${Math.abs(a)} ÷ ${Math.abs(b)}) 에 알맞은 부호를 붙이세요.`,
-        `몫의 부호는 ${answer > 0 ? '양수' : answer < 0 ? '음수' : '0'}가 됩니다.`,
-      ];
-      break;
+  if (type === 0) {
+    question = `${base}^${m} × ${base}^${n} = ${base}^x 일 때, x의 값을 구하시오.`;
+    answer = m + n;
+    hints = [
+      '밑이 같은 거듭제곱의 곱셈은 지수끼리 더합니다.',
+      `a^m × a^n = a^(m+n) 공식을 활용해보세요.`,
+      `x = ${m} + ${n} 입니다. x는 얼마일까요?`
+    ];
+  } else if (type === 1) {
+    if (m < n) {
+      const temp = m; m = n; n = temp;
+    }
+    if (m === n) m += 1; // n보다 항상 크게
+    question = `${base}^${m} ÷ ${base}^${n} = ${base}^x 일 때, x의 값을 구하시오.`;
+    answer = m - n;
+    hints = [
+      '밑이 같은 거듭제곱의 나눗셈은 지수끼리 뺍니다.',
+      `a^m ÷ a^n = a^(m-n) 공식을 활용해보세요. (단, m > n)`,
+      `x = ${m} - ${n} 입니다. x는 얼마일까요?`
+    ];
+  } else {
+    question = `(${base}^${m})^${n} = ${base}^x 일 때, x의 값을 구하시오.`;
+    answer = m * n;
+    hints = [
+      '거듭제곱의 거듭제곱은 지수끼리 곱합니다.',
+      `(a^m)^n = a^(m × n) 공식을 활용해보세요.`,
+      `x = ${m} × ${n} 입니다. x는 얼마일까요?`
+    ];
   }
 
   return {
-    id: `arithmetic-${index}-${Date.now()}`,
+    id: `exponent-${index}-${Date.now()}`,
     question,
     hints,
     answer: answer.toString(),
   };
 };
 
-// 일차방정식 문제 생성 (ax + b = c)
-const generateEquationProblem = (index: number): MathProblem => {
-  let a = getRandomInt(-5, 5);
-  if (a === 0) a = 2; // a가 0이면 안 되므로 보정
-  const x = getRandomInt(-10, 10); // 정수해
-  const b = getRandomInt(-20, 20);
-  const c = a * x + b;
+// 연립방정식 문제 생성
+const generateSystemOfEquationsProblem = (index: number): MathProblem => {
+  const x = getRandomInt(-5, 5);
+  const y = getRandomInt(-5, 5);
 
-  const aStr = a === 1 ? '' : a === -1 ? '-' : a.toString();
-  const operatorStr = b < 0 ? '-' : '+';
-  const bAbsStr = Math.abs(b).toString();
+  const c1 = x + y;
+  const c2 = x - y;
 
-  // 예: 2x + 3 = 11 또는 -3x - 4 = 5
-  // b가 0인 경우도 처리
-  const bPart = b === 0 ? '' : ` ${operatorStr} ${bAbsStr}`;
-  const question = `다음 방정식을 푸시오. ${aStr}x${bPart} = ${c}`;
+  const type = Math.floor(Math.random() * 2); // 0: x 구하기, 1: y 구하기
+  const question = `다음 연립방정식의 해를 (x, y)라 할 때, ${type === 0 ? 'x' : 'y'}의 값을 구하시오.\n  x + y = ${c1}\n  x - y = ${c2}`;
 
+  const answer = type === 0 ? x : y;
   const hints = [
-    '일차방정식을 풀 때는 미지수 x가 있는 항은 좌변으로, 상수항은 우변으로 이항합니다.',
-    b === 0
-      ? `상수항이 없으므로 바로 양변을 x의 계수인 ${a}로 나누어 보세요.`
-      : `상수항 ${b}(을)를 우변으로 이항하면 ${aStr}x = ${c} ${b > 0 ? '-' : '+'} ${Math.abs(b)} 가 됩니다.`,
-    `${aStr}x = ${c - b} 이므로, 양변을 ${a}(으)로 나누세요. x의 값은 얼마일까요?`
+    '연립방정식을 풀기 위해 두 식을 더하거나 빼보세요 (가감법).',
+    `두 식을 더하면 (x + y) + (x - y) = ${c1} + ${c2} 가 됩니다. 즉, 2x = ${c1 + c2} 이므로 x를 구할 수 있습니다.`,
+    `구한 x 값을 한 식에 대입하여 y도 구해보세요.`
   ];
 
   return {
-    id: `equation-${index}-${Date.now()}`,
+    id: `system-eq-${index}-${Date.now()}`,
     question,
     hints,
-    answer: x.toString(),
+    answer: answer.toString(),
+  };
+};
+
+// 다항식 전개 문제
+const generatePolynomialProblem = (index: number): MathProblem => {
+  let a = getRandomInt(-5, 5);
+  if (a === 0) a = 1;
+  let b = getRandomInt(-5, 5);
+  if (b === 0) b = -2;
+
+  const aStr = a > 0 ? `+${a}` : `${a}`;
+  const bStr = b > 0 ? `+${b}` : `${b}`;
+
+  const question = `다항식 (x ${aStr})(x ${bStr})를 전개했을 때, x의 계수를 구하시오.`;
+  const answer = a + b;
+  const hints = [
+    '다항식의 전개는 분배법칙을 이용합니다.',
+    `(x + a)(x + b) = x² + (a+b)x + ab 곱셈공식을 떠올려 보세요.`,
+    `따라서 x의 계수는 ${a} 와(과) ${b} 의 합인 ${a} + (${b}) 입니다.`
+  ];
+
+  return {
+    id: `polynomial-${index}-${Date.now()}`,
+    question,
+    hints,
+    answer: answer.toString(),
+  };
+};
+
+// 일차부등식 문제
+const generateInequalityProblem = (index: number): MathProblem => {
+  let a = getRandomInt(2, 5);
+  let b = getRandomInt(-10, 10);
+  let c = getRandomInt(-10, 10);
+
+  const bStr = b > 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
+  const boundary = (c - b) / a;
+  const isGreater = Math.random() > 0.5;
+  const sign = isGreater ? '>' : '<';
+
+  const question = `부등식 ${a}x ${bStr} ${sign} ${c} 를 만족하는 ${isGreater ? '가장 작은' : '가장 큰'} 정수 x의 값을 구하시오.`;
+
+  let answer = 0;
+  if (isGreater) {
+    answer = Number.isInteger(boundary) ? boundary + 1 : Math.floor(boundary) + 1;
+  } else {
+    answer = Number.isInteger(boundary) ? boundary - 1 : Math.ceil(boundary) - 1;
+  }
+
+  const hints = [
+    '부등식도 방정식의 풀이와 비슷하게 이항을 통해 풀 수 있습니다.',
+    `상수항 ${b} 를 우변으로 이항하면 ${a}x ${sign} ${c} - (${b}) 가 됩니다.`,
+    `정리하면 ${a}x ${sign} ${c - b} 이고, 양변을 ${a}로 나누면 x ${sign} ${(c - b) / a} 가 됩니다. 이를 만족하는 정수 해를 찾으세요.`
+  ];
+
+  return {
+    id: `inequality-${index}-${Date.now()}`,
+    question,
+    hints,
+    answer: answer.toString(),
   };
 };
 
@@ -153,12 +188,17 @@ export const generateDailyProblems = (userType: 'son' | 'daughter' = 'son'): Mat
       problems.push(generatePercentageProblem(i + 5));
     }
   } else {
-    // 중2 문제 (아들)
-    for (let i = 0; i < 5; i++) {
-      problems.push(generateArithmeticProblem(i));
-    }
-    for (let i = 0; i < 5; i++) {
-      problems.push(generateEquationProblem(i + 5));
+    // 중2 문제 (아들) - 지수법칙, 연립방정식, 다항식, 일차부등식 섞어서 출제
+    const problemGenerators = [
+      generateExponentProblem,
+      generateSystemOfEquationsProblem,
+      generatePolynomialProblem,
+      generateInequalityProblem
+    ];
+
+    for (let i = 0; i < 10; i++) {
+      const generator = problemGenerators[Math.floor(Math.random() * problemGenerators.length)];
+      problems.push(generator(i));
     }
   }
 
